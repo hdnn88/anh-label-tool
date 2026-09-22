@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import math
 from pathlib import Path
 
 from flask import Flask, abort, jsonify, request, send_from_directory
@@ -73,16 +74,49 @@ def api_state():
     )
 
 
+def _valid_boxes(boxes):
+    """Validate danh sách box — trả về None nếu hợp lệ, ngược lại là lỗi."""
+    if not isinstance(boxes, list):
+        return "boxes phải là list"
+    if len(boxes) > 1000:
+        return "quá nhiều box (tối đa 1000)"
+    for b in boxes:
+        if not isinstance(b, dict):
+            return "box phải là object"
+        label = b.get("label")
+        if not isinstance(label, str) or not label.strip() or len(label) > 100:
+            return "label phải là chuỗi 1-100 ký tự"
+        bbox = b.get("bbox")
+        if not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
+            return "bbox phải có 4 số [x,y,w,h]"
+        for v in bbox:
+            try:
+                if not math.isfinite(float(v)):
+                    return "bbox chứa số không hữu hạn"
+            except (TypeError, ValueError):
+                return "bbox phải là số"
+    return None
+
+
 @app.route("/api/annotations", methods=["POST"])
 def api_save():
-    data = request.get_json(force=True)
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "Body phải là JSON"}), 415
     filename = data.get("filename")
     boxes = data.get("boxes", [])
-    if not filename:
+    if not filename or not isinstance(filename, str):
         return jsonify({"error": "thiếu filename"}), 400
+    # chỉ chấp nhận tên file cơ bản (không đường dẫn) và phải có thật trong images/
+    if Path(filename).name != filename or filename not in set(list_images()):
+        return jsonify({"error": "filename không hợp lệ"}), 400
+    err = _valid_boxes(boxes)
+    if err:
+        return jsonify({"error": err}), 400
     annotations[filename] = boxes
     for b in boxes:
-        _labels.add(b.get("label", ""))
+        b["label"] = b["label"].strip()
+        _labels.add(b["label"])
         if "id" not in b:
             b["id"] = _next_id[0]
             _next_id[0] += 1

@@ -25,6 +25,11 @@ function showToast(msg, err = false) {
   showToast._t = setTimeout(() => (toast.className = "toast hidden"), 2500);
 }
 
+const esc = (s) =>
+  String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+  );
+
 async function loadState() {
   const r = await fetch("/api/state");
   state = await r.json();
@@ -42,11 +47,11 @@ async function loadState() {
 }
 
 function renderLabels() {
-  labelDatalist.innerHTML = state.labels.map((l) => `<option value="${l}">`).join("");
+  labelDatalist.innerHTML = state.labels.map((l) => `<option value="${esc(l)}">`).join("");
   labelUl.innerHTML = state.labels
     .map(
       (l) =>
-        `<li class="${l === activeLabel ? "active" : ""}" data-label="${l}">${l}</li>`
+        `<li class="${l === activeLabel ? "active" : ""}" data-label="${esc(l)}">${esc(l)}</li>`
     )
     .join("");
   labelUl.querySelectorAll("li").forEach((li) => {
@@ -63,7 +68,7 @@ function renderBoxes() {
     .map(
       (b, i) =>
         `<li class="${i === selBox ? "selected" : ""}" data-i="${i}">
-          <span>${b.label} <small class="muted">(${b.bbox.join(",")})</small></span>
+          <span>${esc(b.label)} <small class="muted">(${b.bbox.join(",")})</small></span>
           <button class="box-del" data-del="${i}" title="Xóa">×</button>
         </li>`
     )
