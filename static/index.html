@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>anh-label-tool — Đánh nhãn ảnh</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>🖼 anh-label-tool</h1>
+    <div class="header-actions">
+      <span id="img-counter" class="muted"></span>
+      <button id="btn-prev" title="Ảnh trước (←)">←</button>
+      <button id="btn-next" title="Ảnh sau (→)">→</button>
+      <button id="btn-save" class="accent">💾 Lưu (Ctrl+S)</button>
+      <button id="btn-export-yolo">⬇ YOLO</button>
+      <button id="btn-export-coco">⬇ COCO</button>
+    </div>
+  </header>
+
+  <main>
+    <aside class="sidebar">
+      <h2>Nhãn</h2>
+      <form id="label-form">
+        <input id="label-input" list="label-list" placeholder="Thêm nhãn (VD: ô tô)" autocomplete="off" />
+        <datalist id="label-list"></datalist>
+        <button type="submit">＋</button>
+      </form>
+      <ul id="label-list-ul"></ul>
+
+      <h2>Box trên ảnh này</h2>
+      <ul id="box-list"></ul>
+      <p class="hint">Kéo chuột để vẽ box · Nhấn label trước khi vẽ · Del = xóa box đang chọn</p>
+    </aside>
+
+    <section class="canvas-wrap">
+      <canvas id="canvas"></canvas>
+      <p id="empty-msg" class="muted hidden">Không có ảnh. Copy ảnh vào thư mục <code>images/</code> rồi refresh.</p>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="app.js"></script>
+</body>
+</html>
